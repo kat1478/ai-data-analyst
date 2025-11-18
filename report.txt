@@ -33,3 +33,17 @@ Missing values (%):
 
 Suspicious columns:
 None detected based on simple heuristics.
+
+
+=== PRICE RELATIONSHIPS ===
+
+Correlations with Price:
+- Year: -0.037 (very weak, negative correlation)
+- Mileage: -0.009 (very weak, negative correlation)
+- Car ID: 0.005 (very weak, positive correlation)
+- Engine Size: -0.004 (very weak, negative correlation)
+
+Interpretation:
+* Year: lower values tend to be associated with lower prices (corr = -0.037).
+* Mileage: lower values tend to be associated with lower prices (corr = -0.009).
+* Car ID: higher values tend to be associated with higher prices (corr = 0.005).

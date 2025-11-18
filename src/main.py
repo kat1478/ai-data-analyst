@@ -61,6 +61,63 @@ def analyze_columns(df: pd.DataFrame) -> str:
 
     return "\n".join(report_lines)
 
+def analyze_price_relationships(df: pd.DataFrame, target_col: str = "Price") -> str:
+    """Analyze correlations between numeric features and the target column (e.g. Price)."""
+    report_lines = []
+    report_lines.append("\n=== PRICE RELATIONSHIPS ===")
+
+    if target_col not in df.columns:
+        report_lines.append(f"Target column '{target_col}' not found in the dataset.")
+        return "\n".join(report_lines)
+
+    # select only numeric columns + target
+    numeric_df = df.select_dtypes(include=["number"])
+
+    if target_col not in numeric_df.columns:
+        report_lines.append(f"Target column '{target_col}' is not numeric.")
+        return "\n".join(report_lines)
+
+    corr = numeric_df.corr()[target_col].drop(labels=[target_col])
+
+    if corr.empty:
+        report_lines.append("No other numeric columns to correlate with target.")
+        return "\n".join(report_lines)
+
+    report_lines.append(f"\nCorrelations with {target_col}:")
+
+    # sort from strongest to weakest
+    corr_sorted = corr.sort_values(key=lambda x: x.abs(), ascending=False)
+
+    for feature, value in corr_sorted.items():
+        strength = ""
+        abs_val = abs(value)
+        if abs_val >= 0.7:
+            strength = "strong"
+        elif abs_val >= 0.4:
+            strength = "moderate"
+        elif abs_val >= 0.2:
+            strength = "weak"
+        else:
+            strength = "very weak"
+
+        direction = "positive" if value > 0 else "negative"
+        report_lines.append(
+            f"- {feature}: {value:.3f} ({strength}, {direction} correlation)"
+        )
+
+    # simple interpretation based on the top few features
+    report_lines.append("\nInterpretation:")
+    top_features = corr_sorted.head(3)
+    for feature, value in top_features.items():
+        direction_word = "higher" if value > 0 else "lower"
+        price_trend = "higher prices" if value > 0 else "lower prices"
+        report_lines.append(
+            f"* {feature}: {direction_word} values tend to be associated with {price_trend} (corr = {value:.3f})."
+        )
+
+    return "\n".join(report_lines)
+
+
 
 def save_report(text: str, path: str) -> None:
     """Save report text to a file."""
@@ -78,14 +135,15 @@ def find_data_file(filename: str) -> Path:
 
 
 def main():
-    # search for example.csv anywhere under data/ (handles an extra folder)
     data_path = find_data_file("example.csv")
 
     df = load_data(str(data_path))
     basic = basic_overview(df)
     columns_report = analyze_columns(df)
+    price_report = analyze_price_relationships(df, target_col="Price")
 
     full_report = basic + "\n\n" + columns_report
+    full_report = basic + "\n\n" + columns_report + "\n\n" + price_report
 
     report_path = Path(__file__).parent.parent / "report.txt"
     save_report(full_report, report_path)

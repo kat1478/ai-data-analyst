@@ -1,0 +1,35 @@
+=== BASIC OVERVIEW ===
+Number of rows: 2500
+Number of columns: 10
+
+First 5 rows:
+   Car ID  Brand  Year  Engine Size Fuel Type Transmission  Mileage Condition     Price     Model
+0       1  Tesla  2016          2.3    Petrol       Manual   114832       New  26613.92   Model X
+1       2    BMW  2018          4.4  Electric       Manual   143190      Used  14679.61  5 Series
+2       3   Audi  2013          4.5  Electric       Manual   181601       New  44402.61        A4
+3       4  Tesla  2011          4.1    Diesel    Automatic    68682       New  86374.33   Model Y
+4       5   Ford  2009          2.6    Diesel       Manual   223009  Like New  73577.10   Mustang
+
+
+=== COLUMN ANALYSIS ===
+
+Numeric columns:
+Car ID, Year, Engine Size, Mileage, Price
+
+Categorical columns:
+Brand, Fuel Type, Transmission, Condition, Model
+
+Missing values (%):
+- Car ID: 0.00%
+- Brand: 0.00%
+- Year: 0.00%
+- Engine Size: 0.00%
+- Fuel Type: 0.00%
+- Transmission: 0.00%
+- Mileage: 0.00%
+- Condition: 0.00%
+- Price: 0.00%
+- Model: 0.00%
+
+Suspicious columns:
+None detected based on simple heuristics.

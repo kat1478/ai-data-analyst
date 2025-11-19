@@ -19,11 +19,10 @@ from src.main import (
 )
 
 PLOTS_DIR = PROJECT_ROOT / "plots"
-DEFAULT_CSV = PROJECT_ROOT / "data" / "example.csv"
+DEFAULT_CSV = PROJECT_ROOT / "data" / "archive" / "example.csv"
 
 
 def run_analysis(df: pd.DataFrame):
-    """Run the full analysis pipeline on a DataFrame and display results in Streamlit."""
     st.subheader("1️⃣ Basic overview")
     basic = basic_overview(df)
     st.text(basic)
@@ -32,22 +31,28 @@ def run_analysis(df: pd.DataFrame):
     col_report = analyze_columns(df)
     st.text(col_report)
 
-    st.subheader("3️⃣ Price relationships")
-    price_report = analyze_price_relationships(df, target_col="Price")
-    st.text(price_report)
+    has_price = "Price" in df.columns
 
-    st.subheader("4️⃣ ML models")
-    model_v1 = train_price_model(df, target_col="Price")
-    st.text(model_v1)
+    if has_price:
+        st.subheader("3️⃣ Price relationships")
+        price_report = analyze_price_relationships(df, target_col="Price")
+        st.text(price_report)
 
-    model_v2 = train_price_model_v2(df, target_col="Price")
-    st.text(model_v2)
+        st.subheader("4️⃣ ML models")
+        model_v1 = train_price_model(df, target_col="Price")
+        st.text(model_v1)
+
+        model_v2 = train_price_model_v2(df, target_col="Price")
+        st.text(model_v2)
+    else:
+        st.info(
+            "No 'Price' column detected – skipping price-specific analysis and models."
+        )
 
     st.subheader("5️⃣ Visualizations")
     viz_report = generate_plots(df)
     st.text(viz_report)
 
-    # wyciągamy nazwy plików z raportu (linie zaczynające się od "- ")
     plot_files = [
         line[2:].strip()
         for line in viz_report.splitlines()
@@ -58,6 +63,7 @@ def run_analysis(df: pd.DataFrame):
         img_path = PLOTS_DIR / fname
         if img_path.exists():
             st.image(str(img_path), caption=fname)
+
 
 
 def main():

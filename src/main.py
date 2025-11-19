@@ -1,5 +1,8 @@
 import pandas as pd
 from pathlib import Path
+import matplotlib.pyplot as plt
+import seaborn as sns
+
 
 
 def load_data(path: str) -> pd.DataFrame:
@@ -117,6 +120,51 @@ def analyze_price_relationships(df: pd.DataFrame, target_col: str = "Price") -> 
 
     return "\n".join(report_lines)
 
+def generate_plots(df: pd.DataFrame) -> str:
+    """Generate histograms for numeric columns and a correlation heatmap, save them to plots/ folder."""
+    plots_dir = Path(__file__).parent.parent / "plots"
+    plots_dir.mkdir(exist_ok=True)
+
+    numeric_cols = df.select_dtypes(include=["number"]).columns.tolist()
+
+    generated_files = []
+
+    # Histograms for numeric features
+    for col in numeric_cols:
+        plt.figure()
+        df[col].hist(bins=30)
+        plt.title(f"Histogram of {col}")
+        plt.xlabel(col)
+        plt.ylabel("Frequency")
+        out_path = plots_dir / f"{col}_hist.png"
+        plt.savefig(out_path, bbox_inches="tight")
+        plt.close()
+        generated_files.append(out_path.name)
+
+    # Correlation heatmap
+    if len(numeric_cols) >= 2:
+        corr = df[numeric_cols].corr()
+
+        plt.figure(figsize=(8, 6))
+        sns.heatmap(corr, annot=True, fmt=".2f", cmap="coolwarm")
+        plt.title("Correlation Matrix (numeric features)")
+        heatmap_path = plots_dir / "correlation_matrix.png"
+        plt.savefig(heatmap_path, bbox_inches="tight")
+        plt.close()
+        generated_files.append(heatmap_path.name)
+
+    report_lines = []
+    report_lines.append("\n=== VISUALIZATIONS ===")
+    if generated_files:
+        report_lines.append("Generated plots:")
+        for name in generated_files:
+            report_lines.append(f"- {name}")
+    else:
+        report_lines.append("No numeric columns available to generate plots.")
+
+    return "\n".join(report_lines)
+
+
 
 
 def save_report(text: str, path: str) -> None:
@@ -141,9 +189,10 @@ def main():
     basic = basic_overview(df)
     columns_report = analyze_columns(df)
     price_report = analyze_price_relationships(df, target_col="Price")
+    viz_report = generate_plots(df)
 
-    full_report = basic + "\n\n" + columns_report
-    full_report = basic + "\n\n" + columns_report + "\n\n" + price_report
+    full_report = basic + "\n\n" + columns_report + "\n\n" + price_report + "\n\n" + viz_report
+
 
     report_path = Path(__file__).parent.parent / "report.txt"
     save_report(full_report, report_path)

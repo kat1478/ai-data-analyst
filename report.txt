@@ -47,3 +47,13 @@ Interpretation:
 * Year: lower values tend to be associated with lower prices (corr = -0.037).
 * Mileage: lower values tend to be associated with lower prices (corr = -0.009).
 * Car ID: higher values tend to be associated with higher prices (corr = 0.005).
+
+
+=== VISUALIZATIONS ===
+Generated plots:
+- Car ID_hist.png
+- Year_hist.png
+- Engine Size_hist.png
+- Mileage_hist.png
+- Price_hist.png
+- correlation_matrix.png

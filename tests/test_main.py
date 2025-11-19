@@ -94,7 +94,6 @@ def test_analyze_price_relationships_simple_case():
     assert "feature2" in report
 
     # ensure words like strong/moderate/weak etc. appear
-    # (we're not testing exact correlation values, only qualitative descriptions)
     assert "correlation" in report
 
     assert "Interpretation:" in report

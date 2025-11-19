@@ -2,11 +2,14 @@ import pandas as pd
 from pathlib import Path
 import matplotlib.pyplot as plt
 import seaborn as sns
+import numpy as np
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LinearRegression
 from sklearn.metrics import r2_score, mean_absolute_error
-
-
+from sklearn.compose import ColumnTransformer
+from sklearn.preprocessing import OneHotEncoder
+from sklearn.ensemble import RandomForestRegressor, GradientBoostingRegressor
+from sklearn.pipeline import Pipeline
 
 
 def load_data(path: str) -> pd.DataFrame:
@@ -189,6 +192,133 @@ def train_price_model(df: pd.DataFrame, target_col: str = "Price") -> str:
     return "\n".join(report_lines)
 
 
+def train_price_model_v2(df: pd.DataFrame, target_col: str = "Price") -> str:
+    """Train improved regression models with numeric + categorical features and compare their performance."""
+    report_lines = []
+    report_lines.append("\n=== PRICE PREDICTION MODEL V2 (with categorical features) ===")
+
+    if target_col not in df.columns:
+        report_lines.append(f"Target column '{target_col}' not found in the dataset.")
+        return "\n".join(report_lines)
+
+    # select numeric and categorical features
+    numeric_features = df.select_dtypes(include=["number"]).columns.tolist()
+    if target_col in numeric_features:
+        numeric_features.remove(target_col)
+
+    # drop obvious ID-like columns
+    id_like = {"Car ID", "car_id", "ID", "Id", "id"}
+    numeric_features = [c for c in numeric_features if c not in id_like]
+
+    categorical_features = df.select_dtypes(exclude=["number"]).columns.tolist()
+
+    if not numeric_features and not categorical_features:
+        report_lines.append("No usable features (numeric or categorical) found for modeling.")
+        return "\n".join(report_lines)
+
+    feature_cols = numeric_features + categorical_features
+    X = df[feature_cols]
+    y = df[target_col]
+
+    data = pd.concat([X, y], axis=1).dropna()
+    if len(data) < 50:
+        report_lines.append("Not enough rows after dropping missing values to train improved models.")
+        return "\n".join(report_lines)
+
+    X = data[feature_cols]
+    y = data[target_col]
+
+    preprocessor = ColumnTransformer(
+        transformers=[
+            ("num", "passthrough", numeric_features),
+            ("cat", OneHotEncoder(handle_unknown="ignore"), categorical_features),
+        ]
+    )
+
+    models = {
+        "RandomForest": RandomForestRegressor(
+            n_estimators=200,
+            random_state=42,
+            n_jobs=-1,
+        ),
+        "GradientBoosting": GradientBoostingRegressor(
+            random_state=42,
+        ),
+    }
+
+    metrics = []
+
+    for name, model in models.items():
+        pipe = Pipeline(
+            steps=[
+                ("preprocess", preprocessor),
+                ("model", model),
+            ]
+        )
+
+        X_train, X_test, y_train, y_test = train_test_split(
+            X, y, test_size=0.2, random_state=42
+        )
+
+        pipe.fit(X_train, y_train)
+        y_pred = pipe.predict(X_test)
+
+        r2 = r2_score(y_test, y_pred)
+        mae = mean_absolute_error(y_test, y_pred)
+
+        metrics.append((name, r2, mae, pipe))
+
+    report_lines.append("Trained models on numeric + categorical features:")
+    for name, r2, mae, _ in metrics:
+        report_lines.append(f"- {name}: R² = {r2:.3f}, MAE = {mae:.2f}")
+
+    # pick best model by R²
+    best_name, best_r2, best_mae, best_pipe = sorted(
+        metrics, key=lambda x: x[1], reverse=True
+    )[0]
+
+    report_lines.append(f"\nBest model: {best_name}")
+    report_lines.append(f"Best R²: {best_r2:.3f}")
+    report_lines.append(f"Best MAE: {best_mae:.2f}")
+
+    # feature importance for tree-based models
+    model = best_pipe.named_steps["model"]
+    if hasattr(model, "feature_importances_"):
+        importances = model.feature_importances_
+        preprocess = best_pipe.named_steps["preprocess"]
+
+        feature_names: list[str] = []
+
+        if numeric_features:
+            feature_names.extend(numeric_features)
+
+        if categorical_features:
+            cat_transformer: OneHotEncoder = preprocess.named_transformers_["cat"]
+            cat_feature_names = cat_transformer.get_feature_names_out(
+                categorical_features
+            ).tolist()
+            feature_names.extend(cat_feature_names)
+
+        if len(feature_names) == len(importances):
+            pairs = sorted(
+                zip(feature_names, importances), key=lambda x: x[1], reverse=True
+            )
+            report_lines.append("\nTop 5 most important features (from best model):")
+            for name, imp in pairs[:5]:
+                report_lines.append(f"- {name}: {imp:.3f}")
+        else:
+            report_lines.append(
+                "\nCould not reliably match feature importances to feature names."
+            )
+    else:
+        report_lines.append(
+            "\nBest model does not expose feature_importances_ attribute."
+        )
+
+    return "\n".join(report_lines)
+
+
+
 def generate_plots(df: pd.DataFrame) -> str:
     """Generate histograms for numeric columns and a correlation heatmap, save them to plots/ folder."""
     plots_dir = Path(__file__).parent.parent / "plots"
@@ -259,6 +389,7 @@ def main():
     columns_report = analyze_columns(df)
     price_report = analyze_price_relationships(df, target_col="Price")
     model_report = train_price_model(df, target_col="Price")
+    model_v2_report = train_price_model_v2(df, target_col="Price")
     viz_report = generate_plots(df)
 
     full_report = (
@@ -270,8 +401,11 @@ def main():
         + "\n\n"
         + model_report
         + "\n\n"
+        + model_v2_report
+        + "\n\n"
         + viz_report
     )
+
 
 
     report_path = Path(__file__).parent.parent / "report.txt"

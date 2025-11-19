@@ -14,6 +14,7 @@ from src.main import (
     load_data,
     analyze_price_relationships,
     train_price_model,
+    train_price_model_v2,
 )
 
 
@@ -166,3 +167,35 @@ def test_train_price_model_on_perfect_linear_data():
 
     # expecting perfect R²
     assert r2_value > 0.9
+
+def test_train_price_model_v2_runs_and_reports():
+    # syntetic dataset
+    n = 120
+    years = list(range(2000, 2000 + n))
+    brands = ["BrandA" if i < n / 2 else "BrandB" for i in range(n)]
+    engine_size = [2.0 + (i % 3) * 0.5 for i in range(n)]
+
+    # BrandB cars are more expensive
+    base_price = [10000 + 500 * (year - 2000) for year in years]
+    brand_effect = [0 if b == "BrandA" else 8000 for b in brands]
+    price = [bp + be for bp, be in zip(base_price, brand_effect)]
+
+    df = pd.DataFrame(
+        {
+            "Price": price,
+            "Year": years,
+            "Engine Size": engine_size,
+            "Brand": brands,
+            "Condition": ["New"] * n,
+        }
+    )
+
+    report = train_price_model_v2(df, target_col="Price")
+
+    # check only for presence of key report sections
+    assert "=== PRICE PREDICTION MODEL V2" in report
+    assert "RandomForest" in report
+    assert "GradientBoosting" in report
+    assert "Best model:" in report
+    # if feature_importances_ is available, it should be reported
+    assert "Top 5 most important features" in report or "does not expose feature_importances" in report

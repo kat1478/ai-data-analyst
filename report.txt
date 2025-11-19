@@ -58,6 +58,23 @@ Mean Absolute Error (MAE) on test set: 23747.19
 Interpretation: Model performs worse than a constant baseline (very poor fit).
 
 
+=== PRICE PREDICTION MODEL V2 (with categorical features) ===
+Trained models on numeric + categorical features:
+- RandomForest: R² = -0.069, MAE = 24568.28
+- GradientBoosting: R² = -0.035, MAE = 23897.10
+
+Best model: GradientBoosting
+Best R²: -0.035
+Best MAE: 23897.10
+
+Top 5 most important features (from best model):
+- Mileage: 0.401
+- Year: 0.132
+- Engine Size: 0.129
+- Model_C-Class: 0.026
+- Model_E-Class: 0.021
+
+
 === VISUALIZATIONS ===
 Generated plots:
 - Car ID_hist.png

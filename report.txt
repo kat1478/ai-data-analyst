@@ -49,6 +49,15 @@ Interpretation:
 * Car ID: higher values tend to be associated with higher prices (corr = 0.005).
 
 
+=== PRICE PREDICTION MODEL ===
+Trained LinearRegression model on numeric features.
+Number of training samples: 2000
+Number of test samples: 500
+R² score on test set: -0.001
+Mean Absolute Error (MAE) on test set: 23747.19
+Interpretation: Model performs worse than a constant baseline (very poor fit).
+
+
 === VISUALIZATIONS ===
 Generated plots:
 - Car ID_hist.png

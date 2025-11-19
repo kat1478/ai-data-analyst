@@ -2,6 +2,10 @@ import pandas as pd
 from pathlib import Path
 import matplotlib.pyplot as plt
 import seaborn as sns
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LinearRegression
+from sklearn.metrics import r2_score, mean_absolute_error
+
 
 
 
@@ -120,6 +124,71 @@ def analyze_price_relationships(df: pd.DataFrame, target_col: str = "Price") -> 
 
     return "\n".join(report_lines)
 
+def train_price_model(df: pd.DataFrame, target_col: str = "Price") -> str:
+    """Train a simple regression model to predict Price from numeric features and report basic metrics."""
+    report_lines = []
+    report_lines.append("\n=== PRICE PREDICTION MODEL ===")
+
+    if target_col not in df.columns:
+        report_lines.append(f"Target column '{target_col}' not found in the dataset.")
+        return "\n".join(report_lines)
+
+    # only numeric features
+    numeric_df = df.select_dtypes(include=["number"]).copy()
+
+    if target_col not in numeric_df.columns:
+        report_lines.append(f"Target column '{target_col}' is not numeric.")
+        return "\n".join(report_lines)
+
+    # X - features, y - target
+    X = numeric_df.drop(columns=[target_col], errors="ignore")
+    y = numeric_df[target_col]
+
+    # Simple preprocessing: drop rows with missing values
+    data = pd.concat([X, y], axis=1).dropna()
+    if data.shape[0] < 10:
+        report_lines.append("Not enough rows after dropping missing values to train a model.")
+        return "\n".join(report_lines)
+
+    X = data.drop(columns=[target_col])
+    y = data[target_col]
+
+    # Split into training and test sets, *80-20 split
+    X_train, X_test, y_train, y_test = train_test_split(
+        X, y, test_size=0.2, random_state=42
+    )
+
+    # Training the model
+    model = LinearRegression()
+    model.fit(X_train, y_train)
+
+   
+    y_pred = model.predict(X_test)
+    r2 = r2_score(y_test, y_pred)
+    mae = mean_absolute_error(y_test, y_pred)
+
+    report_lines.append("Trained LinearRegression model on numeric features.")
+    report_lines.append(f"Number of training samples: {len(X_train)}")
+    report_lines.append(f"Number of test samples: {len(X_test)}")
+    report_lines.append(f"R² score on test set: {r2:.3f}")
+    report_lines.append(f"Mean Absolute Error (MAE) on test set: {mae:.2f}")
+
+    if r2 < 0:
+        quality = "Model performs worse than a constant baseline (very poor fit)."
+    elif r2 < 0.3:
+        quality = "Model explains only a small portion of the variance (weak fit)."
+    elif r2 < 0.6:
+        quality = "Model has a moderate fit to the data."
+    elif r2 < 0.8:
+        quality = "Model explains a large portion of variance (good fit)."
+    else:
+        quality = "Model fits the data very well (high R²)."
+
+    report_lines.append(f"Interpretation: {quality}")
+
+    return "\n".join(report_lines)
+
+
 def generate_plots(df: pd.DataFrame) -> str:
     """Generate histograms for numeric columns and a correlation heatmap, save them to plots/ folder."""
     plots_dir = Path(__file__).parent.parent / "plots"
@@ -189,16 +258,26 @@ def main():
     basic = basic_overview(df)
     columns_report = analyze_columns(df)
     price_report = analyze_price_relationships(df, target_col="Price")
+    model_report = train_price_model(df, target_col="Price")
     viz_report = generate_plots(df)
 
-    full_report = basic + "\n\n" + columns_report + "\n\n" + price_report + "\n\n" + viz_report
+    full_report = (
+        basic
+        + "\n\n"
+        + columns_report
+        + "\n\n"
+        + price_report
+        + "\n\n"
+        + model_report
+        + "\n\n"
+        + viz_report
+    )
 
 
     report_path = Path(__file__).parent.parent / "report.txt"
     save_report(full_report, report_path)
 
     print("Report generated and saved to:", report_path.resolve())
-
 
 if __name__ == "__main__":
     main()

@@ -3,11 +3,20 @@ import pandas as pd
 import pytest
 from pathlib import Path
 
+
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.append(str(PROJECT_ROOT))
 
-from src.main import basic_overview, analyze_columns, load_data
+from src.main import (
+    basic_overview,
+    analyze_columns,
+    load_data,
+    analyze_price_relationships,
+    train_price_model,
+)
+
+
 
 
 def test_basic_overview_contains_shape_and_head(tmp_path):
@@ -99,3 +108,61 @@ def test_analyze_price_relationships_simple_case():
     assert "Interpretation:" in report
     assert "feature1" in report
     assert "feature2" in report
+
+
+def test_train_price_model_no_price_column():
+    # lack of target column
+    df = pd.DataFrame({
+        "A": [1, 2, 3],
+        "B": [4, 5, 6],
+    })
+
+    report = train_price_model(df, target_col="Price")
+
+    assert "=== PRICE PREDICTION MODEL ===" in report
+    assert "Target column 'Price' not found in the dataset." in report
+
+
+def test_train_price_model_not_enough_rows():
+    # only 2 rows
+    df = pd.DataFrame({
+        "Price": [1.0, 2.0],
+        "feature": [10.0, 20.0],
+    })
+
+    report = train_price_model(df, target_col="Price")
+
+    assert "=== PRICE PREDICTION MODEL ===" in report
+    assert "Not enough rows after dropping missing values to train a model." in report
+
+
+def test_train_price_model_on_perfect_linear_data():
+    # create data with perfect linear relationship:
+    # Price = 2 * feature
+    feature_values = list(range(0, 200))
+    prices = [2 * x for x in feature_values]
+
+    df = pd.DataFrame({
+        "Price": prices,
+        "feature": feature_values,
+    })
+
+    report = train_price_model(df, target_col="Price")
+
+    # check if training was reported
+    assert "Trained LinearRegression model on numeric features." in report
+
+    # R²
+    # looking for "R² score on test set:"
+    r2_line = next(
+        (line for line in report.splitlines() if "R² score on test set:" in line),
+        None,
+    )
+    assert r2_line is not None
+
+    # numeric value extraction
+    r2_str = r2_line.split(":")[-1].strip()
+    r2_value = float(r2_str)
+
+    # expecting perfect R²
+    assert r2_value > 0.9

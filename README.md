@@ -2,7 +2,7 @@
 
 Professional summary
 
-- AI Data Analyst is a compact, production-oriented tool that automates exploratory data analysis (EDA) and generates a clear, reproducible report. It is designed to demonstrate end-to-end data work suitable for technical screens and portfolio presentations.
+- AI Data Analyst is a production‑oriented tool that automates exploratory data analysis (EDA) and generates a clear, reproducible report. It is designed to demonstrate end‑to‑end data work.
 
 Current status
 
@@ -10,13 +10,19 @@ Current status
   - Loads CSVs
   - Detects types and missing values
   - Computes basic statistics
-  - Flags simple data issues (high-missing columns, single-value columns)
+  - Flags simple data issues (high‑missing columns, single‑value columns)
   - Exports a readable report (report.txt)
 
-Why this project
+What I do now (role summary)
 
-- Demonstrates practical data skills: data ingestion, cleaning, EDA, simple modeling, and reporting.
-- Reproducible and easy to present to recruiters or technical interviewers.
+- Conduct automated and manual exploratory data analysis (EDA) on tabular datasets.
+- Clean and preprocess data: handle missing values, type conversion, basic feature engineering.
+- Inspect data quality and flag issues (outliers, columns to drop, suspicious values).
+- Produce concise, reproducible reports (text / Markdown / HTML) with key statistics and interpretation.
+- Create and save visualizations (histograms, correlation matrices, top categories).
+- Build and evaluate simple baseline models (regression/classification) to validate signal.
+- Write modular, testable Python code (pandas, numpy, scikit‑learn) and maintain basic unit tests.
+- Prepare the project for a lightweight web UI (Streamlit) for demonstrations.
 
 Repository layout
 
@@ -29,7 +35,8 @@ ai-data-analyst/
 ├── tests/
 │   └── test_main.py
 └── src/
-    └── main.py
+    ├── main.py
+    └── app.py            # (Phase 3) Streamlit demo
 ```
 
 Quick start (Phase 1)
@@ -49,10 +56,10 @@ mamba activate ai-data
 ```bash
 pip install -r requirements.txt
 # or at minimum:
-pip install pandas numpy matplotlib seaborn scikit-learn
+pip install pandas numpy matplotlib seaborn scikit-learn streamlit
 ```
 
-3. Put your CSV into the `data/` folder (or let the script search recursively).
+3. Place your CSV in the `data/` folder (or let the script search recursively).
 
 4. Run the analysis:
 
@@ -60,9 +67,15 @@ pip install pandas numpy matplotlib seaborn scikit-learn
 python src/main.py
 ```
 
-5. Output
+5. Optional: run the Streamlit demo (if app.py is present):
 
-- report.txt (project root) — human-readable EDA summary.
+```bash
+streamlit run src/app.py
+```
+
+Output
+
+- report.txt (project root) — human‑readable EDA summary.
 - (Phase 2) charts in plots/ and richer report formats.
 
 Tests
@@ -74,16 +87,17 @@ pytest
 
 Note on dataset (important)
 
-- The synthetic dataset bundled with this project shows almost no linear relationship between features and Price (very low correlations and negative R² in baseline models). This repo is intended to demonstrate the analysis pipeline (EDA, preprocessing, feature inspection, simple modeling and evaluation), not to produce optimal predictive models for that synthetic data.
+- The synthetic dataset used in this project shows almost no linear relationship between features and Price (very low correlations, negative R² scores). The main goal is to demonstrate a full data analysis and modeling pipeline (EDA, preprocessing, feature engineering, model training, evaluation), not to maximize predictive performance on this specific synthetic data.
 
 Technical stack (v1)
 
 - Python, pandas, numpy, matplotlib / seaborn
-- scikit-learn (for optional simple models)
-- Report export to plain text (and Markdown/HTML in later phases)
+- scikit‑learn (for simple models)
+- Streamlit (demo UI)
+- Report export to plain text / Markdown / HTML in later phases
 
 Roadmap
 
-- Phase 2: Visualizations, richer statistics, simple models, improved reporting.
+- Phase 2: Visualizations, richer statistics, improved feature engineering and simple models.
 - Phase 3: Lightweight web UI (Streamlit) with file upload and interactive results.
-- Phase 4: Polished portfolio deliverable with README case study, screenshots and deployment notes.
+- Phase 4: Polished portfolio deliverable with case study, screenshots and deployment notes.

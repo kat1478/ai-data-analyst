@@ -76,10 +76,11 @@ Top 5 most important features (from best model):
 
 
 === VISUALIZATIONS ===
-Generated plots:
 - Car ID_hist.png
 - Year_hist.png
 - Engine Size_hist.png
 - Mileage_hist.png
 - Price_hist.png
 - correlation_matrix.png
+- top_models.png
+- top_brands.png

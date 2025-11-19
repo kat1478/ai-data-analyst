@@ -3,6 +3,9 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 import seaborn as sns
 import numpy as np
+
+sns.set_theme(style="whitegrid", font_scale=1.0)
+
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LinearRegression
 from sklearn.metrics import r2_score, mean_absolute_error
@@ -319,47 +322,131 @@ def train_price_model_v2(df: pd.DataFrame, target_col: str = "Price") -> str:
 
 
 
+# def generate_plots(df: pd.DataFrame) -> str:
+#     """Generate histograms for numeric columns and a correlation heatmap, save them to plots/ folder."""
+#     plots_dir = Path(__file__).parent.parent / "plots"
+#     plots_dir.mkdir(exist_ok=True)
+
+#     numeric_cols = df.select_dtypes(include=["number"]).columns.tolist()
+
+#     generated_files = []
+
+#     # Histograms for numeric features
+#     for col in numeric_cols:
+#         plt.figure()
+#         df[col].hist(bins=30)
+#         plt.title(f"Histogram of {col}")
+#         plt.xlabel(col)
+#         plt.ylabel("Frequency")
+#         out_path = plots_dir / f"{col}_hist.png"
+#         plt.savefig(out_path, bbox_inches="tight")
+#         plt.close()
+#         generated_files.append(out_path.name)
+
+#     # Correlation heatmap
+#     if len(numeric_cols) >= 2:
+#         corr = df[numeric_cols].corr()
+
+#         plt.figure(figsize=(8, 6))
+#         sns.heatmap(corr, annot=True, fmt=".2f", cmap="coolwarm")
+#         plt.title("Correlation Matrix (numeric features)")
+#         heatmap_path = plots_dir / "correlation_matrix.png"
+#         plt.savefig(heatmap_path, bbox_inches="tight")
+#         plt.close()
+#         generated_files.append(heatmap_path.name)
+
+#     report_lines = []
+#     report_lines.append("\n=== VISUALIZATIONS ===")
+#     if generated_files:
+#         report_lines.append("Generated plots:")
+#         for name in generated_files:
+#             report_lines.append(f"- {name}")
+#     else:
+#         report_lines.append("No numeric columns available to generate plots.")
+
+#     return "\n".join(report_lines)
+
+
 def generate_plots(df: pd.DataFrame) -> str:
-    """Generate histograms for numeric columns and a correlation heatmap, save them to plots/ folder."""
+    """Generate visualizations: histograms for numeric features,
+    correlation heatmap and bar plots for most common models and brands."""
     plots_dir = Path(__file__).parent.parent / "plots"
     plots_dir.mkdir(exist_ok=True)
 
+    report_lines: list[str] = []
+    report_lines.append("\n=== VISUALIZATIONS ===")
+
     numeric_cols = df.select_dtypes(include=["number"]).columns.tolist()
 
-    generated_files = []
-
     # Histograms for numeric features
-    for col in numeric_cols:
-        plt.figure()
-        df[col].hist(bins=30)
-        plt.title(f"Histogram of {col}")
-        plt.xlabel(col)
-        plt.ylabel("Frequency")
-        out_path = plots_dir / f"{col}_hist.png"
-        plt.savefig(out_path, bbox_inches="tight")
-        plt.close()
-        generated_files.append(out_path.name)
-
-    # Correlation heatmap
-    if len(numeric_cols) >= 2:
-        corr = df[numeric_cols].corr()
-
-        plt.figure(figsize=(8, 6))
-        sns.heatmap(corr, annot=True, fmt=".2f", cmap="coolwarm")
-        plt.title("Correlation Matrix (numeric features)")
-        heatmap_path = plots_dir / "correlation_matrix.png"
-        plt.savefig(heatmap_path, bbox_inches="tight")
-        plt.close()
-        generated_files.append(heatmap_path.name)
-
-    report_lines = []
-    report_lines.append("\n=== VISUALIZATIONS ===")
-    if generated_files:
-        report_lines.append("Generated plots:")
-        for name in generated_files:
-            report_lines.append(f"- {name}")
+    if numeric_cols:
+        for col in numeric_cols:
+            plt.figure(figsize=(8, 5))
+            sns.histplot(df[col], bins=20, kde=True)
+            plt.title(f"Distribution of {col}")
+            plt.xlabel(col)
+            plt.ylabel("Count")
+            plt.tight_layout()
+            out_path = plots_dir / f"{col}_hist.png"
+            plt.savefig(out_path, dpi=150)
+            plt.close()
+            report_lines.append(f"- {out_path.name}")
     else:
-        report_lines.append("No numeric columns available to generate plots.")
+        report_lines.append("No numeric columns for histograms.")
+
+    # Correlation heatmap for numeric features
+    if len(numeric_cols) >= 2:
+        plt.figure(figsize=(8, 6))
+        corr = df[numeric_cols].corr()
+        sns.heatmap(
+            corr,
+            annot=True,
+            fmt=".2f",
+            cmap="coolwarm",
+            square=True,
+            cbar_kws={"shrink": 0.8},
+        )
+        plt.title("Correlation Matrix (numeric features)")
+        plt.tight_layout()
+        heatmap_path = plots_dir / "correlation_matrix.png"
+        plt.savefig(heatmap_path, dpi=150)
+        plt.close()
+        report_lines.append(f"- {heatmap_path.name}")
+    else:
+        report_lines.append("Not enough numeric columns for correlation heatmap.")
+
+    # Top car models (jak na screenie z Kaggle)
+    if "Model" in df.columns:
+        counts = df["Model"].value_counts().head(20)
+        plt.figure(figsize=(10, 5))
+        sns.barplot(x=counts.index, y=counts.values)
+        plt.title("Most Common Car Models")
+        plt.xlabel("Car Model")
+        plt.ylabel("Number of Cars")
+        plt.xticks(rotation=45, ha="right")
+        plt.tight_layout()
+        fname = plots_dir / "top_models.png"
+        plt.savefig(fname, dpi=150)
+        plt.close()
+        report_lines.append(f"- {fname.name}")
+
+    # Top brands
+    if "Brand" in df.columns:
+        counts = df["Brand"].value_counts().head(15)
+        plt.figure(figsize=(8, 5))
+        sns.barplot(x=counts.index, y=counts.values)
+        plt.title("Most Common Car Brands")
+        plt.xlabel("Brand")
+        plt.ylabel("Number of Cars")
+        plt.xticks(rotation=45, ha="right")
+        plt.tight_layout()
+        fname = plots_dir / "top_brands.png"
+        plt.savefig(fname, dpi=150)
+        plt.close()
+        report_lines.append(f"- {fname.name}")
+
+    if len(report_lines) == 1:
+        report_lines.append("No visualizations were generated.")
 
     return "\n".join(report_lines)
 

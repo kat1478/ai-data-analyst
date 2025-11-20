@@ -1,7 +1,5 @@
 # AI Data Analyst
 
-Professional summary
-
 - AI Data Analyst is a production‑oriented tool that automates exploratory data analysis (EDA) and generates a clear, reproducible report. It is designed to demonstrate end‑to‑end data work.
 
 Current status

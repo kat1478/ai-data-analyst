@@ -158,6 +158,60 @@ If you want to test predictive performance, use a larger, higher‑quality datas
 - Streamlit
 - pytest
 
+## Verified environment
+
+The project was developed and tested with the following stack:
+
+**Python**
+
+- Python 3.10.12
+
+**Core data & ML libraries**
+
+- pandas 2.2.3
+- numpy 2.1.3
+- matplotlib 3.9.2
+- seaborn 0.13.2
+- scikit-learn 1.7.0
+- scipy 1.15.3
+
+**Web UI**
+
+- streamlit 1.51.0
+
+**Testing**
+
+- pytest 8.4.0
+
+> Note: The `requirements.txt` file in this repo pins these versions for reproducibility.  
+> Newer compatible versions should also work, but this setup is known to be stable.
+
+## Dependency files (what they are and how to use them)
+
+- `environment.yml` (or `environment,yml` in this repo): conda/mamba environment specification. Use this file to create an isolated conda environment with pinned package versions for reproducible results:
+
+  ```bash
+  mamba env create -f environment.yml
+  conda activate ai-data
+  ```
+
+  If the file in the repository has a different name (e.g. `environment,yml`), either rename it to `environment.yml` or pass the exact filename to the create command.
+
+- `requirements.txt`: pip-style requirements for use with virtualenv / venv or inside an existing conda environment. Install packages with:
+
+  ```bash
+  pip install -r requirements.txt
+  ```
+
+- Why both?
+
+  - Use `environment.yml` when you prefer conda/mamba for binary dependency management and exact reproducibility.
+  - Use `requirements.txt` for lightweight installs with pip or when deploying into environments that expect pip requirements.
+
+- Notes:
+  - Both files pin versions that were verified during development. Update versions intentionally and test the pipeline again if you change them.
+  - The pip section in `environment.yml` installs a couple of packages (Streamlit, pytest) that are not always required for minimal CLI runs; use `pip` to install extras as needed.
+
 ## Roadmap / Extensions
 
 Short term

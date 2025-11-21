@@ -188,7 +188,7 @@ The project was developed and tested with the following stack:
 
 ## Dependency files (what they are and how to use them)
 
-- `environment.yml` (or `environment,yml` in this repo): conda/mamba environment specification. Use this file to create an isolated conda environment with pinned package versions for reproducible results:
+- `environment.yml` (or `environment.yml` in this repo): conda/mamba environment specification. Use this file to create an isolated conda environment with pinned package versions for reproducible results:
 
   ```bash
   mamba env create -f environment.yml
